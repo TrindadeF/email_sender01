@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Dashboard</h1>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="dashboard-card card">
+                <div class="card-body">
+                    <div class="stat-card">
+                        <div class="stat-value">{{ stats.sent }}</div>
+                        <div class="stat-label">Emails Enviados</div>
+                        <span class="status-badge sent">Concluído</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="dashboard-card card">
+                <div class="card-body">
+                    <div class="stat-card">
+                        <div class="stat-value">{{ stats.pending }}</div>
+                        <div class="stat-label">Emails Pendentes</div>
+                        <span class="status-badge pending">Aguardando</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-card card mt-4">
+        <div class="card-body">
+            <h5 class="card-title mb-4">Atividade Recente</h5>
+            <div class="chart-container">
+                <!-- Aqui você pode adicionar um gráfico de atividade -->
+                <p class="text-center text-muted">Gráfico de envios por hora/dia</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

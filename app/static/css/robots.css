@@ -1,0 +1,76 @@
+.robot-card {
+    transition: transform 0.2s ease-in-out;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.robot-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.schedule-display {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.time-picker-wrapper {
+    background: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.days-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.day-checkbox {
+    display: none;
+}
+
+.day-label {
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 20px;
+    background: #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.day-checkbox:checked + .day-label {
+    background: #0d6efd;
+    color: white;
+}
+
+.filter-rules-editor {
+    font-family: monospace;
+    resize: vertical;
+}
+
+.preview-section {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.validation-error {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 5px;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+.save-success {
+    animation: pulse 0.5s ease-in-out;
+}

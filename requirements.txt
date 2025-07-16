@@ -1,0 +1,14 @@
+Flask
+Flask-Login
+Flask-SQLAlchemy
+Flask-JWT-Extended
+Flask-Bcrypt
+email-validator
+SQLAlchemy
+alembic
+celery
+redis
+selenium
+pandas
+openpyxl
+python-dotenv

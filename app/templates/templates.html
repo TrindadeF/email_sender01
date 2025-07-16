@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Templates de Email{% endblock %}
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Templates de Email</h1>
+    
+    <!-- Dica de variáveis dinâmicas -->
+    <div class="alert alert-info">
+        Você pode usar variáveis dinâmicas no assunto e no corpo do email.<br>
+        Exemplos: <code>{{'{{nome}}'}}</code>, <code>{{'{{titulo}}'}}</code><br>
+        Essas variáveis serão substituídas pelos dados de cada contato na hora do envio.
+    </div>
+
+    <!-- Formulário de Novo Template -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Novo Template</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{{ url_for('main.templates') }}">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Nome do Template</label>
+                    <input type="text" class="form-control" id="name" name="name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="subject" class="form-label">Assunto</label>
+                    <input type="text" class="form-control" id="subject" name="subject" required>
+                    <small class="text-muted">
+                        Use <code>{{'{{nome}}'}}</code>, <code>{{'{{titulo}}'}}</code> para campos dinâmicos.
+                    </small>
+                </div>
+                <div class="mb-3">
+                    <label for="body" class="form-label">Corpo do Email</label>
+                    <textarea class="form-control" id="body" name="body" rows="10" required></textarea>
+                    <small class="text-muted">
+                        Use <code>{{'{{nome}}'}}</code>, <code>{{'{{titulo}}'}}</code> para campos dinâmicos.<br>
+                        Exemplo:<br>
+                        <code>Olá {{'{{nome}}'}}, seu título é {{'{{titulo}}'}}.</code>
+                    </small>
+                </div>
+                <button type="submit" class="btn btn-primary">Salvar Template</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Templates -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Templates Existentes</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Assunto</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for template in templates %}
+                        <tr>
+                            <td>{{ template.name }}</td>
+                            <td>{{ template.subject }}</td>
+                            <td>
+                                <a href="{{ url_for('main.edit_template', id=template.id) }}" class="btn btn-sm btn-primary">Editar</a>
+                                <form method="post" action="{{ url_for('main.delete_template', id=template.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza?')">Excluir</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

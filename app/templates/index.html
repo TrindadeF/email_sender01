@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <h1 class="mb-4">Email Sender</h1>
+            <p class="lead mb-4">Uma plataforma poderosa para gerenciar e automatizar seus envios de email.</p>
+            
+            <div class="row justify-content-center gap-3">
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Já tem uma conta?</h5>
+                            <p class="card-text">Faça login para acessar sua conta e gerenciar seus emails.</p>
+                            <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Login</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Novo por aqui?</h5>
+                            <p class="card-text">Crie sua conta gratuitamente e comece a usar agora mesmo.</p>
+                            <a href="{{ url_for('auth.register') }}" class="btn btn-success">Registrar</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-5">
+                <h2 class="mb-4">Principais Recursos</h2>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Templates Personalizados</h5>
+                                <p class="card-text">Crie e gerencie templates de email com variáveis personalizadas.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Importação de Contatos</h5>
+                                <p class="card-text">Importe seus contatos facilmente a partir de arquivos Excel.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Automação</h5>
+                                <p class="card-text">Configure robôs para automatizar seus envios de email.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

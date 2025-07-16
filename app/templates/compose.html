@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}Enviar E-mails{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/compose.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Enviar E-mails</h1>
+    
+    <div class="compose-card card">
+        <div class="card-body">
+            <form method="post" id="composeForm">
+                <div class="template-selector">
+                    <label for="template" class="form-label">Template de Email</label>
+                    <select class="form-select" id="template" name="template" required>
+                        <option value="">Selecione um template...</option>
+                        {% for tpl in templates %}
+                            <option value="{{ tpl.id }}">{{ tpl.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filters-editor">
+                    <label for="filters" class="form-label">Regras de Filtro</label>
+                    <textarea class="form-control" id="filters" name="filters" rows="4" 
+                              spellcheck="false">{}</textarea>
+                    <small class="text-muted">
+                        Formato JSON: {"campo": "valor", "idade": {"$gt": 18}}
+                    </small>
+                </div>
+
+                <div class="rate-limit">
+                    <label for="rate" class="form-label">Limite de Envio</label>
+                    <div class="input-group">
+                        <input type="number" class="form-control" id="rate_value" name="rate_value" 
+                               placeholder="10" required min="1">
+                        <select class="form-select" id="rate_unit" name="rate_unit" style="max-width: 100px;">
+                            <option value="m">por minuto</option>
+                            <option value="h">por hora</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="preview-section mt-4" id="previewSection">
+                    <h5>Preview da Configuração</h5>
+                    <div id="previewContent"></div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <button type="button" class="btn btn-secondary" onclick="previewConfig()">
+                        Visualizar Configuração
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="sendButton">
+                        Iniciar Envio
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filtersTextarea = document.getElementById('filters');
+    
+    filtersTextarea.addEventListener('change', function() {
+        try {
+            if (this.value) {
+                JSON.parse(this.value);
+                this.setCustomValidity('');
+            }
+        } catch (e) {
+            this.setCustomValidity('JSON inválido');
+        }
+    });
+
+    window.previewConfig = function() {
+        const formData = new FormData(document.getElementById('composeForm'));
+        const config = {
+            template: document.getElementById('template').options[
+                document.getElementById('template').selectedIndex
+            ].text,
+            filters: formData.get('filters'),
+            rate: `${formData.get('rate_value')}/${formData.get('rate_unit')}`
+        };
+
+        const previewHtml = `
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <tr><td><strong>Template:</strong></td><td>${config.template || '-'}</td></tr>
+                    <tr><td><strong>Filtros:</strong></td><td>${config.filters || '{}'}</td></tr>
+                    <tr><td><strong>Taxa de Envio:</strong></td><td>${config.rate}</td></tr>
+                </table>
+            </div>
+        `;
+
+        document.getElementById('previewContent').innerHTML = previewHtml;
+        document.getElementById('previewSection').style.display = 'block';
+    }
+
+    document.getElementById('composeForm').addEventListener('submit', function() {
+        document.getElementById('sendButton').classList.add('send-success');
+    });
+});
+</script>
+{% endblock %}

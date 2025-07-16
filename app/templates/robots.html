@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% block title %}Configurar Robô{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/robots.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Configurar Robô de Envio</h1>
+    
+    <div class="robot-card card">
+        <div class="card-body">
+            <form method="post" action="{{ url_for('main.robots') }}" id="robotForm">
+                <div class="row">
+                    <!-- Informações Básicas -->
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nome do Robô</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email de Envio</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="template_id" class="form-label">Template</label>
+                            <select class="form-select" id="template_id" name="template_id" required>
+                                <option value="">Selecione um template...</option>
+                                {% for template in templates %}
+                                <option value="{{ template.id }}">{{ template.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Configurações de Agendamento -->
+                    <div class="col-md-6">
+                        <div class="schedule-display">
+                            <h5>Agendamento</h5>
+                            <div class="time-picker-wrapper">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label for="emails_per_hour" class="form-label">Emails/hora</label>
+                                        <input type="number" class="form-control" id="emails_per_hour" 
+                                               name="emails_per_hour" min="1" max="1000" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="start_time" class="form-label">Início</label>
+                                        <input type="time" class="form-control" id="start_time" 
+                                               name="start_time" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="end_time" class="form-label">Fim</label>
+                                        <input type="time" class="form-control" id="end_time" 
+                                               name="end_time" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="days-selector">
+                                {% for day in ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'] %}
+                                <div>
+                                    <input type="checkbox" class="day-checkbox" name="days[]" 
+                                           value="{{ loop.index0 }}" id="day{{ loop.index0 }}">
+                                    <label class="day-label" for="day{{ loop.index0 }}">
+                                        {{ day[:3] }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Regras de Filtro -->
+                <div class="mb-4">
+                    <label for="filter_rules" class="form-label">Regras de Filtro</label>
+                    <div class="filter-rules-editor">
+                        <textarea class="form-control" id="filter_rules" name="filter_rules" 
+                                  rows="4" spellcheck="false" placeholder="{'coluna': 'valor'}"></textarea>
+                        <small class="text-muted">
+                            Formato JSON: {"campo": "valor", "idade": {"$gt": 18}}
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Preview -->
+                <div class="preview-section" id="previewSection" style="display: none;">
+                    <h5>Preview da Configuração</h5>
+                    <div id="previewContent"></div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <button type="button" class="btn btn-secondary" onclick="previewConfig()">
+                        Visualizar Configuração
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="saveButton">
+                        Salvar Robô
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validação do horário
+    const startTime = document.getElementById('start_time');
+    const endTime = document.getElementById('end_time');
+    const emailsPerHour = document.getElementById('emails_per_hour');
+
+    function validateTimes() {
+        if (startTime.value && endTime.value) {
+            if (startTime.value >= endTime.value) {
+                endTime.setCustomValidity('O horário final deve ser maior que o inicial');
+            } else {
+                endTime.setCustomValidity('');
+            }
+        }
+    }
+
+    startTime.addEventListener('change', validateTimes);
+    endTime.addEventListener('change', validateTimes);
+
+    // Validação do JSON
+    const filterRules = document.getElementById('filter_rules');
+    
+    filterRules.addEventListener('change', function() {
+        try {
+            if (this.value) {
+                JSON.parse(this.value);
+                this.setCustomValidity('');
+            }
+        } catch (e) {
+            this.setCustomValidity('JSON inválido');
+        }
+    });
+
+    // Preview da configuração
+    window.previewConfig = function() {
+        const formData = new FormData(document.getElementById('robotForm'));
+        const config = {
+            name: formData.get('name'),
+            email: formData.get('email'),
+            template: document.getElementById('template_id').options[
+                document.getElementById('template_id').selectedIndex
+            ].text,
+            emailsPerHour: formData.get('emails_per_hour'),
+            schedule: `${formData.get('start_time')} até ${formData.get('end_time')}`,
+            days: Array.from(document.querySelectorAll('input[name="days[]"]:checked'))
+                .map(cb => cb.nextElementSibling.textContent.trim())
+                .join(', ')
+        };
+
+        const previewHtml = `
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <tr><td><strong>Nome:</strong></td><td>${config.name || '-'}</td></tr>
+                    <tr><td><strong>Email:</strong></td><td>${config.email || '-'}</td></tr>
+                    <tr><td><strong>Template:</strong></td><td>${config.template || '-'}</td></tr>
+                    <tr><td><strong>Emails/hora:</strong></td><td>${config.emailsPerHour || '-'}</td></tr>
+                    <tr><td><strong>Horário:</strong></td><td>${config.schedule || '-'}</td></tr>
+                    <tr><td><strong>Dias:</strong></td><td>${config.days || 'Nenhum selecionado'}</td></tr>
+                </table>
+            </div>
+        `;
+
+        document.getElementById('previewContent').innerHTML = previewHtml;
+        document.getElementById('previewSection').style.display = 'block';
+    }
+
+    // Animação ao salvar
+    document.getElementById('robotForm').addEventListener('submit', function() {
+        document.getElementById('saveButton').classList.add('save-success');
+    });
+});
+</script>
+{% endblock %}
