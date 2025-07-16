@@ -5,6 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Email Sender{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+        }
+        .dropdown-item:active {
+            background-color: #0d6efd;
+        }
+        .nav-link, .navbar-brand {
+            padding: 0.7rem 1rem;
+        }
+        .dropdown-item {
+            padding: 0.5rem 1rem;
+        }
+        .dropdown-item i {
+            width: 20px;
+        }
+    </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -22,22 +40,94 @@
     {% endwith %}
 </div>
 
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid">
-        <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">EmailSender</a>
+        <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">
+            <i class="fas fa-envelope me-2"></i>EmailSender
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
+            {% if current_user.is_authenticated %}
             <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('main.upload') }}">Upload</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('main.compose') }}">Enviar E-mails</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('main.templates') }}">Templates</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('main.robots') }}">Robôs</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('main.robots_monitor') }}">Monitor Robôs</a></li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.dashboard') }}">
+                        <i class="fas fa-chart-line me-1"></i>Dashboard
+                    </a>
+                </li>
+                
+                <!-- Menu Emails -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="emailsDropdown" role="button" 
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-envelope-open-text me-1"></i>Emails
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="emailsDropdown">
+                        <li>
+                            <a class="dropdown-item" href="{{ url_for('main.compose') }}">
+                                <i class="fas fa-paper-plane me-2"></i>Enviar E-mails
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ url_for('main.templates') }}">
+                                <i class="fas fa-file-alt me-2"></i>Templates
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ url_for('main.upload') }}">
+                                <i class="fas fa-upload me-2"></i>Upload de Contatos
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- Menu Robôs -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="robotsDropdown" role="button" 
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-robot me-1"></i>Automação
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="robotsDropdown">
+                        <li>
+                            <a class="dropdown-item" href="{{ url_for('main.robots') }}">
+                                <i class="fas fa-cogs me-2"></i>Configurar Robôs
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ url_for('main.robots_monitor') }}">
+                                <i class="fas fa-desktop me-2"></i>Monitor de Robôs
+                            </a>
+                        </li>
+                    </ul>
+                </li>
             </ul>
+
+            <!-- Menu do Usuário -->
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" 
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-user-circle me-1"></i>
+                        {{ current_user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li class="dropdown-item-text">
+                            <small class="text-muted d-block">
+                                <i class="fas fa-envelope me-1"></i>{{ current_user.email }}
+                            </small>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                <i class="fas fa-sign-out-alt me-2"></i>Sair
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+            {% endif %}
         </div>
     </div>
 </nav>

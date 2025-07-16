@@ -12,3 +12,4 @@ selenium
 pandas
 openpyxl
 python-dotenv
+Flask-Mail

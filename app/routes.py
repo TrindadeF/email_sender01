@@ -20,6 +20,7 @@ def index():
 @main.route('/dashboard')
 @login_required
 def dashboard():
+    user = current_user 
     stats = {
         'total_robots': Robot.query.count(),
         'total_sent': SendLog.query.filter_by(status='sent').count(),
@@ -30,28 +31,32 @@ def dashboard():
     return render_template('dashboard.html', stats=stats, robots=robots, user=user)
 
 @main.route('/templates', methods=['GET', 'POST'])
-@jwt_required()
+@login_required
 def templates():
-    current_user_id = get_jwt_identity()
-    
     if request.method == 'POST':
         template = EmailTemplate(
             name=request.form['name'],
             subject=request.form['subject'],
             body=request.form['body'],
-            user_id=current_user_id
+            user_id=current_user.id
         )
         db.session.add(template)
         db.session.commit()
         flash('Template criado com sucesso!', 'success')
         return redirect(url_for('main.templates'))
     
-    templates = EmailTemplate.query.filter_by(user_id=current_user_id).all()
+    templates = EmailTemplate.query.filter_by(user_id=current_user.id).all()
     return render_template('templates.html', templates=templates)
 
 @main.route('/templates/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
 def edit_template(id):
     template = EmailTemplate.query.get_or_404(id)
+    # Verificar se o template pertence ao usuário atual
+    if template.user_id != current_user.id:
+        flash('Você não tem permissão para editar este template.', 'danger')
+        return redirect(url_for('main.templates'))
+    
     if request.method == 'POST':
         template.name = request.form['name']
         template.subject = request.form['subject']
@@ -62,6 +67,7 @@ def edit_template(id):
     return render_template('edit_template.html', template=template)
 
 @main.route('/templates/<int:id>/delete', methods=['POST'])
+@login_required
 def delete_template(id):
     template = EmailTemplate.query.get_or_404(id)
     db.session.delete(template)
@@ -70,16 +76,14 @@ def delete_template(id):
     return redirect(url_for('main.templates'))
 
 @main.route('/robots', methods=['GET', 'POST'])
-@jwt_required()
+@login_required
 def robots():
-    current_user_id = get_jwt_identity()
-    
     if request.method == 'POST':
         robot = Robot(
             name=request.form['name'],
             email=request.form['email'],
             template_id=request.form['template_id'],
-            user_id=current_user_id,
+            user_id=current_user.id,
             emails_per_hour=request.form['emails_per_hour'],
             start_time=datetime.strptime(request.form['start_time'], '%H:%M').time(),
             end_time=datetime.strptime(request.form['end_time'], '%H:%M').time(),
@@ -95,8 +99,12 @@ def robots():
     return render_template('robots.html', templates=templates)
 
 @main.route('/api/robots/<int:id>/toggle', methods=['POST'])
+@login_required
 def toggle_robot(id):
     robot = Robot.query.get_or_404(id)
+    # Verificar se o robô pertence ao usuário atual
+    if robot.user_id != current_user.id:
+        return jsonify({'error': 'Você não tem permissão para modificar este robô'}), 403
     robot.active = not robot.active
     db.session.add(RobotLog(
         robot=robot,
@@ -106,10 +114,8 @@ def toggle_robot(id):
     return jsonify({'status': 'success'})
 
 @main.route('/upload', methods=['GET', 'POST'])
-@jwt_required()
+@login_required
 def upload():
-    current_user_id = get_jwt_identity()
-    
     if request.method == 'POST':
         if 'file' not in request.files:
             flash('Nenhum arquivo selecionado', 'error')
@@ -138,7 +144,7 @@ def upload():
             
             # Criar nova lista de contatos
             name = request.form.get('name', 'Lista Importada ' + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-            contact_list = ContactList(name=name, user_id=1)  # TODO: usar current_user.id
+            contact_list = ContactList(name=name, user_id=current_user.id)
             db.session.add(contact_list)
             db.session.flush()
 
@@ -168,14 +174,15 @@ def upload():
     return render_template('upload.html')
 
 @main.route('/robots/monitor')
+@login_required
 def robots_monitor():
-    return render_template('robots.html')
+    robots = Robot.query.filter_by(user_id=current_user.id).all()
+    return render_template('robots_monitor.html', robots=robots)
 
 @main.route('/compose', methods=['GET', 'POST'])
-@jwt_required()
+@login_required
 def compose():
-    current_user_id = get_jwt_identity()
-    templates = EmailTemplate.query.filter_by(user_id=current_user_id).all()
+    templates = EmailTemplate.query.filter_by(user_id=current_user.id).all()
     if request.method == 'POST':
         tpl_id = request.form.get('template')
         filters_json = request.form.get('filters', '{}')

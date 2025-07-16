@@ -3,18 +3,19 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_jwt_extended import JWTManager
 from celery import Celery
-
+from flask_mail import Mail
 
 db = SQLAlchemy()
 login_manager = LoginManager()
 jwt = JWTManager()
 celery = Celery(__name__)
+mail = Mail()
 
 
 def create_app(config_class='config.DevelopmentConfig'):
     app = Flask(__name__)
     app.config.from_object(config_class)
-
+    mail.init_app(app)
     db.init_app(app)
     login_manager.init_app(app)
     jwt.init_app(app)

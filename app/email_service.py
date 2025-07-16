@@ -1,7 +1,8 @@
 from flask import render_template_string
 from .tasks import send_email_task
 from .models import SendLog, Contact, db
-
+from flask_mail import Message
+from app import mail
 
 def enqueue_emails(template, contacts, rate_limit=None):
     """
@@ -20,3 +21,7 @@ def enqueue_emails(template, contacts, rate_limit=None):
         log = SendLog(contact_id=contact.id, template_id=template.id, status='pending')
         db.session.add(log)
     db.session.commit()
+    
+def send_email(subject, recipients, body, html=None):
+    msg = Message(subject, recipients=recipients, body=body, html=html)
+    mail.send(msg)
