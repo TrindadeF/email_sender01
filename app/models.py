@@ -118,4 +118,7 @@ class InternalEmail(db.Model):
     description = db.Column(db.String(255), nullable=True)  # Descrição opcional
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    user = db.relationship('User', backref='emails', lazy=True)
+    smtp_server = db.Column(db.String(255), nullable=False)
+    smtp_port = db.Column(db.Integer, nullable=False, default=587)
+    smtp_username = db.Column(db.String(128), nullable=False)
+    smtp_password = db.Column(db.String(128), nullable=False)

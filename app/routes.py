@@ -248,6 +248,36 @@ def compose():
         return redirect(url_for('main.dashboard'))
     return render_template('compose.html', templates=templates)
 
+@main.route('/send-email/<int:robot_id>', methods=['POST'])
+@login_required
+def send_email(robot_id):
+    robot = Robot.query.get_or_404(robot_id)
+    if robot.user_id != current_user.id:
+        flash('Você não tem permissão para enviar emails com este robô.', 'danger')
+        return redirect(url_for('main.dashboard'))
+
+    internal_email = InternalEmail.query.filter_by(email=robot.internal_email).first()
+    if not internal_email:
+        flash('O email interno associado ao robô não foi encontrado.', 'danger')
+        return redirect(url_for('main.dashboard'))
+
+    # Configurar credenciais SMTP dinamicamente
+    smtp_config = {
+        'server': internal_email.smtp_server,
+        'port': internal_email.smtp_port,
+        'username': internal_email.smtp_username,
+        'password': internal_email.smtp_password
+    }
+
+    # Enviar email usando smtp_config
+    try:
+        send_email_via_smtp(robot.email, smtp_config)
+        flash('Email enviado com sucesso!', 'success')
+    except Exception as e:
+        flash(f'Erro ao enviar email: {str(e)}', 'danger')
+
+    return redirect(url_for('main.dashboard'))
+
 def calculate_delivery_rate():
     total = SendLog.query.count()
     if total == 0:

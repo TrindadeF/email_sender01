@@ -14,6 +14,22 @@
             <label for="description" class="form-label">Descrição</label>
             <input type="text" class="form-control" id="description" name="description">
         </div>
+        <div class="mb-3">
+            <label for="smtp_server" class="form-label">Servidor SMTP</label>
+            <input type="text" class="form-control" id="smtp_server" name="smtp_server" required>
+        </div>
+        <div class="mb-3">
+            <label for="smtp_port" class="form-label">Porta SMTP</label>
+            <input type="number" class="form-control" id="smtp_port" name="smtp_port" required>
+        </div>
+        <div class="mb-3">
+            <label for="smtp_username" class="form-label">Usuário SMTP</label>
+            <input type="text" class="form-control" id="smtp_username" name="smtp_username" required>
+        </div>
+        <div class="mb-3">
+            <label for="smtp_password" class="form-label">Senha SMTP</label>
+            <input type="password" class="form-control" id="smtp_password" name="smtp_password" required>
+        </div>
         <button type="submit" class="btn btn-primary">Adicionar Email</button>
     </form>
     
