@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Emails Internos{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Gerenciar Emails Internos</h1>
+    
+    <form method="post" class="mb-4">
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label">Descrição</label>
+            <input type="text" class="form-control" id="description" name="description">
+        </div>
+        <button type="submit" class="btn btn-primary">Adicionar Email</button>
+    </form>
+    
+    <h2 class="mb-4">Emails Cadastrados</h2>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Descrição</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for email in emails %}
+            <tr>
+                <td>{{ email.email }}</td>
+                <td>{{ email.description }}</td>
+                <td>
+                    <form method="post" action="{{ url_for('main.delete_internal_email', email_id=email.id) }}">
+                        <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

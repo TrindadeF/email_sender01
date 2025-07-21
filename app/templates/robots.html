@@ -19,10 +19,28 @@
                             <label for="name" class="form-label">Nome do Robô</label>
                             <input type="text" class="form-control" id="name" name="name" required>
                         </div>
-                        
+                        <div class="mb-3">
+                            <label for="internal_email" class="form-label">Email Interno</label>
+                            <select class="form-select" id="internal_email" name="internal_email" required>
+                                <option value="">Selecione um email...</option>
+                                {% for email in internal_emails %}
+                                <option value="{{ email.email }}">{{ email.email }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                         <div class="mb-3">
                             <label for="email" class="form-label">Email de Envio</label>
                             <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+
+                       <div class="mb-3">
+                            <label for="contact_title" class="form-label">Título dos Contatos</label>
+                            <select class="form-select contact-title-select" id="contact_title" name="contact_title" required>
+                                <option value="">Selecione um título...</option>
+                                {% for title in titles %}
+                                <option value="{{ title[0] }}">{{ title[0] }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
 
                         <div class="mb-3">

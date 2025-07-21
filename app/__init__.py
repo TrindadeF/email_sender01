@@ -4,12 +4,14 @@ from flask_login import LoginManager
 from flask_jwt_extended import JWTManager
 from celery import Celery
 from flask_mail import Mail
+from flask_migrate import Migrate
 
 db = SQLAlchemy()
 login_manager = LoginManager()
 jwt = JWTManager()
 celery = Celery(__name__)
 mail = Mail()
+migrate = Migrate()
 
 
 def create_app(config_class='config.DevelopmentConfig'):
@@ -19,6 +21,7 @@ def create_app(config_class='config.DevelopmentConfig'):
     db.init_app(app)
     login_manager.init_app(app)
     jwt.init_app(app)
+    migrate.init_app(app, db)
 
     # Configurações do JWT
     app.config["JWT_TOKEN_LOCATION"] = ["headers"]

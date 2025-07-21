@@ -7,6 +7,21 @@
 {% endblock %}
 
 {% block content %}
+
+<!-- Adicione logo após o <body> -->
+<div class="container mt-3">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+</div>
+
 <div class="container">
     <h1 class="mb-4">Upload de Lista de Contatos</h1>
     
@@ -72,7 +87,34 @@
             </form>
         </div>
     </div>
-</div>
+
+    {% if contacts %}
+        <div class="mt-5">
+            <h4>Contatos Importados</h4>
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm">
+                    <thead>
+                        <tr>
+                            <th>Titulo</th>
+                            <th>Email</th>
+                            <th>Nome do Congresso</th>
+                            <th>Ano do Congresso</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for contact in contacts %}
+                        <tr>
+                            <td>{{ contact.titulo }}</td>
+                            <td>{{ contact.email }}</td>
+                            <td>{{ contact.nome_congresso }}</td>
+                            <td>{{ contact.ano_congresso }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
 {% endblock %}
 
 {% block scripts %}
@@ -93,11 +135,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const previewBody = document.getElementById('previewBody');
     
     // Ligar o botão ao input de arquivo
-    document.querySelector('.file-input-wrapper button').addEventListener('click', function() {
-        console.log('Botão de seleção clicado!'); // Debug
+    document.querySelector('.file-input-wrapper button').addEventListener('click', function(e) {
+        e.preventDefault(); // Evita comportamento padrão
+        fileInput.value = ''; // Limpa o valor para garantir o evento change
         fileInput.click();
     });
-    
     // Drag and drop
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         uploadZone.addEventListener(eventName, preventDefaults, false);
@@ -217,10 +259,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (progress >= 100) clearInterval(interval);
             }, 100);
         }
-    });
-
-    document.querySelector('.file-input-wrapper button').addEventListener('click', function() {
-        document.getElementById('file').click();
     });
 });
 </script>

@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+from flask_jwt_extended import create_access_token, decode_token
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import db, login_manager
@@ -11,13 +12,14 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
     active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     contacts_lists = db.relationship('ContactList', backref='owner', lazy=True)
     templates = db.relationship('EmailTemplate', backref='owner', lazy=True)
     schedules = db.relationship('Schedule', backref='owner', lazy=True)
     limits = db.relationship('Limits', uselist=False, backref='user')
+    internal_emails = db.relationship('InternalEmail', backref='owner', lazy=True)
 
     @property
     def password(self):
@@ -36,9 +38,9 @@ class User(UserMixin, db.Model):
     @staticmethod
     def verify_auth_token(token):
         try:
-            data = verify_jwt_token(token)
+            data = decode_token(token)
             return User.query.get(data['identity'])
-        except:
+        except Exception:
             return None
 
 class ContactList(db.Model):
@@ -50,7 +52,11 @@ class ContactList(db.Model):
 class Contact(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     list_id = db.Column(db.Integer, db.ForeignKey('contact_list.id'), nullable=False)
-    data = db.Column(db.JSON, nullable=False)
+    titulo = db.Column(db.String(255))
+    email = db.Column(db.String(255))
+    nome_congresso = db.Column(db.String(255))
+    ano_congresso = db.Column(db.String(10))
+    # ...outros campos se necessário...
 
 class EmailTemplate(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -92,7 +98,9 @@ class Robot(db.Model):
     working_days = db.Column(db.JSON, default=list)  # [0,1,2,3,4] for Mon-Fri
     filter_rules = db.Column(db.JSON, default=dict)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+    contact_title = db.Column(db.String(255), nullable=False) 
+    internal_email = db.Column(db.String(128), db.ForeignKey('internal_email.email'), nullable=True)
+
     template = db.relationship('EmailTemplate', backref='robots')
     logs = db.relationship('RobotLog', backref='robot', lazy=True)
 
@@ -102,3 +110,12 @@ class RobotLog(db.Model):
     action = db.Column(db.String(32), nullable=False)  # start, stop, send, error
     details = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class InternalEmail(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(128), nullable=False, unique=True)
+    description = db.Column(db.String(255), nullable=True)  # Descrição opcional
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', backref='emails', lazy=True)

@@ -16,6 +16,27 @@
     margin-top: 10px;
 }
 
+.contact-title-select {
+    width: 300px; /* Define uma largura fixa para o dropdown */
+    max-width: 100%; /* Garante que não ultrapasse o container */
+    font-size: 14px; /* Ajusta o tamanho da fonte */
+    padding: 8px; /* Adiciona espaçamento interno */
+    border: 1px solid #ccc; /* Define borda */
+    border-radius: 5px; /* Bordas arredondadas */
+    background-color: #f9f9f9; /* Fundo claro */
+}
+
+.contact-title-select:focus {
+    width: 300px; /* Mantém a largura fixa ao abrir o menu */
+}
+
+.contact-title-select option {
+    padding: 5px; /* Espaçamento interno para cada opção */
+    white-space: nowrap; /* Evita quebra de linha */
+    text-overflow: ellipsis; /* Adiciona "..." para textos longos */
+    overflow: hidden; /* Oculta o excesso de texto */
+}
+
 .time-picker-wrapper {
     background: #fff;
     padding: 15px;
