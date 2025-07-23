@@ -91,6 +91,7 @@ class Robot(db.Model):
     name = db.Column(db.String(64), nullable=False)
     email = db.Column(db.String(120), nullable=False)
     template_id = db.Column(db.Integer, db.ForeignKey('email_template.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     active = db.Column(db.Boolean, default=True)
     emails_per_hour = db.Column(db.Integer, default=100)
     start_time = db.Column(db.Time, nullable=False)
@@ -98,7 +99,9 @@ class Robot(db.Model):
     working_days = db.Column(db.JSON, default=list)  # [0,1,2,3,4] for Mon-Fri
     filter_rules = db.Column(db.JSON, default=dict)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    contact_title = db.Column(db.String(255), nullable=False) 
+    contact_title = db.Column(db.String(255), nullable=False)
+    # Relacionamento com usuário proprietário
+    user = db.relationship('User', backref='robots')
     internal_email = db.Column(db.String(128), db.ForeignKey('internal_email.email'), nullable=True)
 
     template = db.relationship('EmailTemplate', backref='robots')

@@ -1,3 +1,80 @@
+/* Use o estilo padrão do Bootstrap para responsividade */
+.contact-title-select {
+    width: 100%;
+    /* ...existing box-sizing, font-size, padding, border e border-radius do Bootstrap */
+}
+/* Remova customizações de focus para usar padrão do Bootstrap */
+.contact-title-select option {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 10px 12px;
+    background-color: #ffffff;
+    color: #333;
+    font-size: 1rem;
+}
+/* Estilos para melhorar a experiência em dispositivos móveis */
+@supports (-webkit-touch-callout: none) {
+    /* Estilos específicos para iOS */
+    .contact-title-select {
+        -webkit-appearance: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        padding-right: 30px;
+    }
+}
+@media (max-width: 768px) {
+    .contact-title-select {
+        font-size: 0.9rem;
+        padding: 0.4rem;
+        min-height: 38px;
+    }
+    
+    .contact-title-select option {
+        padding: 8px 10px;
+        font-size: 0.9rem;
+    }
+    
+    .mb-3 {
+        margin-bottom: 1rem !important;
+    }
+}
+@media (max-width: 576px) {
+    .contact-title-select {
+        font-size: 0.85rem;
+        padding: 0.35rem 0.5rem;
+        min-height: 36px;
+    }
+    
+    .contact-title-select option {
+        padding: 8px;
+        font-size: 0.85rem;
+    }
+}
+@media (max-width: 480px) {
+    .contact-title-select {
+        font-size: 0.8rem;
+        padding: 0.3rem;
+    }
+    
+    .form-label {
+        font-size: 0.9rem;
+        margin-bottom: 0.3rem;
+    }
+    
+    /* Melhorias para dispositivos muito pequenos */
+    .mobile-select {
+        max-height: 40px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .select-active {
+        background-color: #e9f0ff;
+    }
+}
 .robot-card {
     transition: transform 0.2s ease-in-out;
     border-radius: 10px;
@@ -16,26 +93,6 @@
     margin-top: 10px;
 }
 
-.contact-title-select {
-    width: 300px; /* Define uma largura fixa para o dropdown */
-    max-width: 100%; /* Garante que não ultrapasse o container */
-    font-size: 14px; /* Ajusta o tamanho da fonte */
-    padding: 8px; /* Adiciona espaçamento interno */
-    border: 1px solid #ccc; /* Define borda */
-    border-radius: 5px; /* Bordas arredondadas */
-    background-color: #f9f9f9; /* Fundo claro */
-}
-
-.contact-title-select:focus {
-    width: 300px; /* Mantém a largura fixa ao abrir o menu */
-}
-
-.contact-title-select option {
-    padding: 5px; /* Espaçamento interno para cada opção */
-    white-space: nowrap; /* Evita quebra de linha */
-    text-overflow: ellipsis; /* Adiciona "..." para textos longos */
-    overflow: hidden; /* Oculta o excesso de texto */
-}
 
 .time-picker-wrapper {
     background: #fff;
@@ -80,6 +137,7 @@
     border-radius: 8px;
 }
 
+
 .validation-error {
     color: #dc3545;
     font-size: 0.875rem;
@@ -95,3 +153,4 @@
 .save-success {
     animation: pulse 0.5s ease-in-out;
 }
+

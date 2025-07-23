@@ -3,6 +3,8 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/robots.css') }}">
+<!-- Choices.js for searchable dropdown -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
 {% endblock %}
 
 {% block content %}
@@ -33,12 +35,13 @@
                             <input type="email" class="form-control" id="email" name="email" required>
                         </div>
 
-                       <div class="mb-3">
+                        <!-- Título dos Contatos: usar select para Choices.js -->
+                        <div class="mb-3">
                             <label for="contact_title" class="form-label">Título dos Contatos</label>
-                            <select class="form-select contact-title-select" id="contact_title" name="contact_title" required>
-                                <option value="">Selecione um título...</option>
+                            <select class="form-select" id="contact_title" name="contact_title" required>
+                                <option value="">Digite para buscar um título...</option>
                                 {% for title in titles %}
-                                <option value="{{ title[0] }}">{{ title[0] }}</option>
+                                  <option value="{{ title[0] }}">{{ title[0] }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -93,17 +96,15 @@
                     </div>
                 </div>
 
-                <!-- Regras de Filtro -->
-                <div class="mb-4">
-                    <label for="filter_rules" class="form-label">Regras de Filtro</label>
-                    <div class="filter-rules-editor">
-                        <textarea class="form-control" id="filter_rules" name="filter_rules" 
-                                  rows="4" spellcheck="false" placeholder="{'coluna': 'valor'}"></textarea>
-                        <small class="text-muted">
-                            Formato JSON: {"campo": "valor", "idade": {"$gt": 18}}
-                        </small>
+                <div class="mb-3">
+                    <label for="contact_preview" class="form-label">Preview dos Contatos</label>
+                    <div id="contact_preview" class="border p-3" style="background-color: #f9f9f9; max-height: 200px; overflow-y: auto;">
+                        <p class="text-muted">Selecione um título para visualizar os contatos.</p>
                     </div>
                 </div>
+
+                <!-- Adicionar campo oculto para filter_rules -->
+                <input type="hidden" id="filter_rules" name="filter_rules" value="" />
 
                 <!-- Preview -->
                 <div class="preview-section" id="previewSection" style="display: none;">
@@ -126,12 +127,60 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/robots.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const choices = new Choices('#contact_title', {
+        removeItemButton: false,
+        searchPlaceholderValue: 'Digite para buscar um título...',
+        placeholder: true,
+        shouldSort: false,
+        noChoicesText: 'Nenhum título encontrado',
+        itemSelectText: '',
+    });
+
     // Validação do horário
     const startTime = document.getElementById('start_time');
     const endTime = document.getElementById('end_time');
     const emailsPerHour = document.getElementById('emails_per_hour');
+    const contactTitleSelect = document.getElementById('contact_title');
+    const contactPreview = document.getElementById('contact_preview');
+
+    contactTitleSelect.addEventListener('change', function() {
+        const selectedTitle = this.value;
+
+        // Limpar o preview se nenhum título for selecionado
+        if (!selectedTitle) {
+            contactPreview.innerHTML = '<p class="text-muted">Selecione um título para visualizar os contatos.</p>';
+            return;
+        }
+
+        // Fazer requisição AJAX para buscar contatos
+        fetch(`/api/contacts/${selectedTitle}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length === 0) {
+                    contactPreview.innerHTML = '<p class="text-muted">Nenhum contato encontrado para este título.</p>';
+                } else {
+                    let previewHtml = '<ul class="list-group">';
+                    data.forEach(contact => {
+                        previewHtml += `
+                            <li class="list-group-item">
+                                <strong>Email:</strong> ${contact.email} <br>
+                                <strong>Congresso:</strong> ${contact.nome_congresso} (${contact.ano_congresso})
+                            </li>
+                        `;
+                    });
+                    previewHtml += '</ul>';
+                    contactPreview.innerHTML = previewHtml;
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao buscar contatos:', error);
+                contactPreview.innerHTML = '<p class="text-danger">Erro ao buscar contatos.</p>';
+            });
+    });
 
     function validateTimes() {
         if (startTime.value && endTime.value) {

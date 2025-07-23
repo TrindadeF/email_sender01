@@ -6,17 +6,20 @@ from app import mail
 import smtplib
 from email.mime.text import MIMEText
 
-def enqueue_emails(template, contacts, rate_limit=None):
+def enqueue_emails(template, contacts, rate_limit=None, robot_id=None):
     """
     Enqueue emails for sending with optional rate limit.
     """
     for contact in contacts:
+        # Construir contexto de dados a partir dos atributos do model
+        data = {col.name: getattr(contact, col.name) for col in contact.__table__.columns}
         # Render dynamic subject and body
-        subject = render_template_string(template.subject, **contact.data)
-        body = render_template_string(template.body, **contact.data)
-        # Queue task
+        subject = render_template_string(template.subject, **data)
+        body = render_template_string(template.body, **data)
+        # Queue task (destinatário, assunto, corpo)
+        # Enfileirar task com robot_id para que a task saiba onde buscar credenciais
         send_email_task.apply_async(
-            args=[contact.data.get('email'), subject, body],
+            args=[robot_id, data.get('email'), subject, body],
             rate_limit=rate_limit or ''
         )
         # Log as pending

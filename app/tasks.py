@@ -22,7 +22,14 @@ def send_email_task(robot_id, to_address, subject, body):
             server.login(robot.smtp_username, robot.smtp_password)
             server.sendmail(robot.internal_email, [to_address], msg.as_string())
 
+        # Log de envio bem-sucedido
+        from app.models import RobotLog, db
+        db.session.add(RobotLog(robot_id=robot.id, action='send', details=f'Email enviado para {to_address}'))
+        db.session.commit()
         return {'status': 'success', 'to': to_address}
     except Exception as e:
-        print(f"Erro ao enviar email: {e}")
+        # Log de erro
+        from app.models import RobotLog, db
+        db.session.add(RobotLog(robot_id=robot.id, action='error', details=str(e)))
+        db.session.commit()
         return {'status': 'error', 'error': str(e)}

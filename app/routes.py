@@ -7,7 +7,7 @@ from datetime import datetime
 from .models import ContactList, Contact, EmailTemplate, InternalEmail, db, User
 from .models import SendLog, Robot, RobotLog
 from .filters import apply_filters
-from .email_service import enqueue_emails
+from .email_service import enqueue_emails, send_email_via_smtp
 import unicodedata
 
 main = Blueprint('main', __name__)
@@ -77,27 +77,46 @@ def delete_template(id):
     return redirect(url_for('main.templates'))
 
 
+@main.route('/api/contacts/<titulo>', methods=['GET'])
+@login_required
+def get_contacts_by_title(titulo):
+    contacts = Contact.query.filter_by(titulo=titulo).all()
+    return jsonify([{'id': contact.id, 'email': contact.email, 'nome_congresso': contact.nome_congresso, 'ano_congresso': contact.ano_congresso} for contact in contacts])
+
 
 @main.route('/robots', methods=['GET', 'POST'])
 @login_required
 def robots():
     if request.method == 'POST':
         internal_email = request.form.get('internal_email')
+        # Processar regras de filtro opcionais (JSON)
+        raw_rules = request.form.get('filter_rules', '')
+        try:
+            filter_rules = json.loads(raw_rules) if raw_rules else {}
+        except Exception:
+            filter_rules = {}
         robot = Robot(
-            name=request.form['name'],
-            email=request.form['email'],
-            template_id=request.form['template_id'],
+            name=request.form.get('name'),
+            email=request.form.get('email'),
+            template_id=request.form.get('template_id'),
             user_id=current_user.id,
-            emails_per_hour=request.form['emails_per_hour'],
-            start_time=datetime.strptime(request.form['start_time'], '%H:%M').time(),
-            end_time=datetime.strptime(request.form['end_time'], '%H:%M').time(),
+            emails_per_hour=request.form.get('emails_per_hour'),
+            start_time=datetime.strptime(request.form.get('start_time'), '%H:%M').time(),
+            end_time=datetime.strptime(request.form.get('end_time'), '%H:%M').time(),
             working_days=request.form.getlist('days[]'),
-            filter_rules=request.form['filter_rules'],
-            internal_email=internal_email
+            filter_rules=filter_rules,
+            internal_email=internal_email,
+            contact_title=request.form.get('contact_title')
         )
         db.session.add(robot)
         db.session.commit()
-        flash('Robô criado com sucesso!', 'success')
+        # Enfileirar envio inicial de e-mails para o título selecionado
+        contacts = Contact.query.filter_by(titulo=robot.contact_title).all()
+        # Enfileirar e-mails com ID do robô para que a task receba robot_id corretamente
+        enqueue_emails(robot.template, contacts,
+                       rate_limit=str(robot.emails_per_hour),
+                       robot_id=robot.id)
+        flash('Robô criado e e-mails enfileirados com sucesso!', 'success')
         return redirect(url_for('main.dashboard'))
     
     # Buscar templates, titulos e emails 
@@ -113,12 +132,26 @@ def internal_emails():
     if request.method == 'POST':
         email = request.form.get('email')
         description = request.form.get('description')
-        if not email:
-            flash('O email é obrigatório.', 'error')
+        smtp_server = request.form.get('smtp_server')
+        smtp_port = request.form.get('smtp_port')
+        smtp_username = request.form.get('smtp_username')
+        smtp_password = request.form.get('smtp_password')
+
+        # Verificar se todos os campos obrigatórios estão preenchidos
+        if not email or not smtp_server or not smtp_port or not smtp_username or not smtp_password:
+            flash('Todos os campos são obrigatórios.', 'error')
             return redirect(url_for('main.internal_emails'))
 
         # Associar email ao usuário logado
-        internal_email = InternalEmail(email=email, description=description, user_id=current_user.id)
+        internal_email = InternalEmail(
+            email=email,
+            description=description,
+            smtp_server=smtp_server,
+            smtp_port=smtp_port,
+            smtp_username=smtp_username,
+            smtp_password=smtp_password,
+            user_id=current_user.id
+        )
         db.session.add(internal_email)
         db.session.commit()
         flash('Email interno cadastrado com sucesso!', 'success')
@@ -151,6 +184,21 @@ def toggle_robot(id):
     ))
     db.session.commit()
     return jsonify({'status': 'success'})
+ 
+@main.route('/api/robots/<int:id>/logs', methods=['GET'])
+@login_required
+def robot_logs(id):
+    from .models import RobotLog
+    robot = Robot.query.get_or_404(id)
+    # Verificar permissão
+    if robot.user_id != current_user.id:
+        return jsonify({'error': 'Você não tem permissão'}), 403
+    # Buscar últimos 50 logs
+    logs = RobotLog.query.filter_by(robot_id=id).order_by(RobotLog.timestamp.desc()).limit(50).all()
+    return jsonify([
+        {'timestamp': log.timestamp.isoformat(), 'action': log.action, 'details': log.details}
+        for log in logs
+    ])
 
 @main.route('/upload', methods=['GET', 'POST'])
 @login_required
@@ -181,7 +229,8 @@ def upload():
             print("Colunas após padronização:", df.columns)  # Debug
             
             # Validar colunas necessárias
-            required_cols = ['num', 'titulo', 'emails', 'nome_do_congresso', 'ano_do_congresso']
+            # A coluna 'numero' representa o identificador importado, substituindo 'num'
+            required_cols = ['numero', 'titulo', 'emails', 'nome_do_congresso', 'ano_do_congresso']
             missing_cols = [col for col in required_cols if col not in df.columns]
             if missing_cols:
                 flash(f'Colunas obrigatórias ausentes: {", ".join(missing_cols)}', 'error')
